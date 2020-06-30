@@ -34,78 +34,51 @@ class JointNMF:
         Wd_init = nmfd.fit_transform(Xd)
         Hd_init = nmfd.components_
         
-        # healthy specific programs
+        # healthy programs
         if Wh is None:
-            self.Wh = Wh_init[:,self.nsh_components:]
+            self.Wh = Wh_init
         else:
-            if (Wh.shape != (self.Xh.shape[0], self.nh_components)):
+            if (Wh.shape != (self.Xh.shape[0], self.nh_components + self.nsh_components)):
                 raise ValueError("Initial Wh has wrong shape.")
             self.Wh = np.copy(Wh)
             
         if Hh is None:
-            self.Hh = Hh_init[self.nsh_components:,:]
+            self.Hh = Hh_init
         else:
-            if (Hh.shape != (self.nh_components, self.Xh.shape[1])):
+            if (Hh.shape != (self.nh_components + self.nsh_components, self.Xh.shape[1])):
                 raise ValueError("Initial Wh has wrong shape.")
-            self.Hh = np.copy(Hh)
-            
-        # healthy derived shared programs
-        if Wshh is None:
-            self.Wshh = Wh_init[:,:self.nsh_components]
-        else:
-            if (Wshh.shape != (self.Xh.shape[0], self.nsh_components)):
-                raise ValueError("Initial Wh has wrong shape.")
-            self.Wshh = np.copy(Wshh)
-            
-        if Hshh is None:
-            self.Hshh = Hh_init[:self.nsh_components,:]
-        else:
-            if (Hshh.shape != (self.nsh_components, self.Xh.shape[1])):
-                raise ValueError("Initial Wh has wrong shape.")
-            self.Hshh = np.copy(Hshh)
-            
-        # disease derived shared programs
-        if Wshd is None:
-            self.Wshd = Wd_init[:,:self.nsh_components]
-        else:
-            if (Wshd.shape != (self.Xd.shape[0], self.nsh_components)):
-                raise ValueError("Initial Wh has wrong shape.")
-            self.Wshd = np.copy(Wshd)
-            
-        if Hshd is None:
-            self.Hshd = Hd_init[:self.nsh_components,:]
-        else:
-            if (Hshd.shape != (self.nsh_components, self.Xd.shape[1])):
-                raise ValueError("Initial Wh has wrong shape.")
-            self.Hshd = np.copy(Hshd)  
+            self.Hh = np.copy(Hh) 
         
-        # disease specific programs
+        # disease programs
         if Wd is None:
-            self.Wd = Wd_init[:,nsh_components:]
+            self.Wd = Wd_init
         else:
-            if (Wd.shape != (self.Xd.shape[0], self.nd_components)):
+            if (Wd.shape != (self.Xd.shape[0], self.nd_components + self.nsh_components)):
                 raise ValueError("Initial Wd has wrong shape.")
             self.Wd = np.copy(Wd)
         
         if Hd is None:
-            self.Hd = Hd_init[nsh_components:,:]
+            self.Hd = Hd_init
         else:
-            if (Hd.shape != (self.nd_components, self.Xd.shape[1])):
+            if (Hd.shape != (self.nd_components + self.nsh_components, self.Xd.shape[1])):
                 raise ValueError("Initial Wd has wrong shape.")
             self.Hd = np.copy(Hd)
             
+        healthy_diff = 0.5*np.linalg.norm(self.Xh - np.dot(Wh_init, Hh_init), ord='fro')**2
+        disease_diff = 0.5*np.linalg.norm(self.Xd - np.dot(Wd_init, Hd_init), ord='fro')**2
+        den = np.linalg.norm(Wh_init, ord='fro')**2 + np.linalg.norm(Wd_init, ord='fro')**2
+        self.mu = (healthy_diff + disease_diff)/den
     
     @property
     def cost(self):
-        diff1 = 0.5*np.linalg.norm(self.Xh - np.dot(self.Wh, self.Hh) - np.dot(self.Wshh, self.Hshh), ord='fro')**2
-        diff2 = 0.5*np.linalg.norm(self.Xd - np.dot(self.Wd, self.Hd) - np.dot(self.Wshd, self.Hshd), ord='fro')**2
-        diff3 = (self.mu/2)*np.linalg.norm(self.Wshh, ord='fro')**2 + (self.mu/2)*np.linalg.norm(self.Wh, ord='fro')**2
-        diff4 = (self.mu/2)*np.linalg.norm(self.Wshd, ord='fro')**2 + (self.mu/2)*np.linalg.norm(self.Wd, ord='fro')**2        
-        diff5 = -1*np.sum(self.gamma*np.dot(self.Wshh.T,self.Wshd))
-        #diff3 = self.mu/2*np.linalg.norm(self.Wh, ord='fro')**2
-        #diff4 = self.mu/2*np.linalg.norm(self.Wd, ord='fro')**2
-        #diff5 = self.gamma/2*np.linalg.norm(self.Wshh-self.Wshd, ord='fro')**2
-        chi2 = diff1 + diff2 + diff3 + diff4 + diff5
+        self.Wshh = self.Wh[:,:self.nsh_components]
+        self.Wshd = self.Wd[:,:self.nsh_components]
+        
+        diff1 = 0.5*np.linalg.norm(self.Xh - np.dot(self.Wh, self.Hh), ord='fro')**2
+        diff2 = 0.5*np.linalg.norm(self.Xd - np.dot(self.Wd, self.Hd), ord='fro')**2
+        diff3 = (self.mu/2)*np.linalg.norm(self.Wh, ord='fro')**2 + (self.mu/2)*np.linalg.norm(self.Wd, ord='fro')
+        diff4 = (self.gamma/2)*np.linalg.norm(self.Wshh-self.Wshd, ord='fro')**2
+        chi2 = diff1 + diff2 + diff3 + diff4
         return chi2
     
     def solve(self, W_only=False, H_only=False, sparsemode=False, maxiters=None, tol=None):
@@ -119,51 +92,39 @@ class JointNMF:
         
         while (niter < self.maxiters) and np.abs((oldchi2-chi2)/chi2) > self.tol: #((oldchi2-chi2)/chi2 > self.tol):
             # update Wh
-            Wh_up = np.dot(self.Xh, self.Hh.T)
-            Wh_down = np.dot(self.Wh, np.dot(self.Hh, self.Hh.T)) + self.mu*self.Wh + _smallnumber2
-            self.Wh = self.Wh*(Wh_up/Wh_down)
+            scale2=np.append((self.gamma+self.mu)*np.ones(self.nsh_components), (self.mu)*np.ones(self.nh_components))
+            self.Wshd = self.Wd[:,:self.nsh_components]
+            Wh_up1 = np.dot(self.Xh, self.Hh.T)
+            Wshd_transform = self.Wshd * (self.gamma*np.ones((self.Xh.shape[0], self.nsh_components)))
+            zeros = np.zeros((self.Xh.shape[0], self.nh_components))
+            Wh_up2 = np.hstack((Wshd_transform, zeros)) + _smallnumber2
+            Wh_down = np.dot(self.Wh, np.dot(self.Hh, self.Hh.T)) + np.dot(self.Wh, np.diag(scale2)) + _smallnumber2
+            self.Wh = self.Wh*((Wh_up1 + Wh_up2)/Wh_down)
             
             # update Hh
-            Hh_up = np.dot(self.Wh.T, self.Xh)
+            Hh_up = np.dot(self.Wh.T, self.Xh) + _smallnumber2
             Hh_down = np.dot(np.dot(self.Wh.T, self.Wh), self.Hh) + _smallnumber2
             self.Hh = self.Hh*(Hh_up/Hh_down)
             
-            # udpate Wshh
-            Wshh_up = np.dot(self.Xh, self.Hshh.T) + self.gamma*self.Wshd
-            Wshh_down = np.dot(self.Wshh, np.dot(self.Hshh, self.Hshh.T)) + self.mu*self.Wshh + _smallnumber2
-            self.Wshh = self.Wshh*(Wshh_up/Wshh_down)
-            
-            # update Hshh
-            Hshh_up = np.dot(self.Wshh.T, self.Xh)
-            Hshh_down = np.dot(np.dot(self.Wshh.T, self.Wshh), self.Hshh) + _smallnumber2
-            self.Hshh = self.Hshh*(Hshh_up/Hshh_down)
-            
             # update Wd
-            Wd_up = np.dot(self.Xd, self.Hd.T)
-            Wd_down = np.dot(self.Wd, np.dot(self.Hd, self.Hd.T)) + self.mu*self.Wd + _smallnumber2
-            self.Wd = self.Wd*(Wd_up/Wd_down)
-            
+            scale2=np.append((self.gamma+self.mu)*np.ones(self.nsh_components), self.mu*np.ones(self.nd_components))
+            self.Wshh = self.Wh[:,:self.nsh_components]
+            Wd_up1 = np.dot(self.Xd, self.Hd.T)
+            Wshh_transform = self.Wshh * (self.gamma*np.ones((self.Xd.shape[0], self.nsh_components)))
+            zeros = np.zeros((self.Xd.shape[0], self.nd_components))
+            Wd_up2 = np.hstack((Wshh_transform, zeros)) + _smallnumber2
+            Wd_down = np.dot(self.Wd, np.dot(self.Hd, self.Hd.T)) + np.dot(self.Wd, np.diag(scale2)) + _smallnumber2 
+            self.Wd = self.Wd*((Wd_up1 + Wd_up2)/Wd_down)
+                        
             # update Hd
-            Hd_up = np.dot(self.Wd.T, self.Xd)
+            Hd_up = np.dot(self.Wd.T, self.Xd) + _smallnumber2
             Hd_down = np.dot(np.dot(self.Wd.T, self.Wd), self.Hd) + _smallnumber2
             self.Hd = self.Hd*(Hd_up/Hd_down)
-            
-            # update Wshd
-            Wshd_up = np.dot(self.Xd, self.Hshd.T) + self.gamma*self.Wshh
-            Wshd_down = np.dot(self.Wshd, np.dot(self.Hshd, self.Hshd.T)) + self.mu*self.Wshd + _smallnumber2
-            self.Wshd = self.Wshd*(Wshd_up/Wshd_down)
-            
-            # update Hshd
-            Hshd_up = np.dot(self.Wshd.T, self.Xd)
-            Hshd_down = np.dot(np.dot(self.Wshd.T, self.Wshd), self.Hshd) + _smallnumber2
-            self.Hshd = self.Hshd*(Hshd_up/Hshd_down)
-            
+                        
             # chi2
             oldchi2 = chi2
             chi2 = self.cost
             
-            #print(niter, oldchi2, chi2)
-
             # Some quick check. May need its error class ...
             if (not np.isfinite(chi2)):
                raise ValueError("NMF construction failed, likely due to missing data")

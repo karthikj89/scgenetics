@@ -10,7 +10,7 @@ _smallnumber2 = 1E-04
 
 class JointNMF:
     def __init__(self, Xh, Xd, Wh=None, Hh=None, Wshh=None, Hshh=None, Wshd=None, Hshd=None, Wd=None, Hd=None, 
-                 nh_components=10, nsh_components=10, nd_components=10, gamma=1, mu=0.1):
+                 nh_components=10, nsh_components=10, nd_components=10, gamma=1, mu=None):
         self.Xh = np.copy(Xh)
         self.Xd = np.copy(Xd)
 
@@ -22,28 +22,23 @@ class JointNMF:
         self.maxiters = 1000
         self.tol = _smallnumber
         
-        self.mu = mu
         self.gamma = gamma
         
         
         # initialize the matrix using result from standard NMF
         nmfh = NMF(n_components = nsh_components + nh_components)
         nmfd = NMF(n_components = nsh_components + nd_components)
-        Wh_init = nmfh.fit_transform(Xh)
-        Hh_init = nmfh.components_
-        Wd_init = nmfd.fit_transform(Xd)
-        Hd_init = nmfd.components_
         
         # healthy programs
         if Wh is None:
-            self.Wh = Wh_init
+            self.Wh = nmfh.fit_transform(Xh)
         else:
             if (Wh.shape != (self.Xh.shape[0], self.nh_components + self.nsh_components)):
                 raise ValueError("Initial Wh has wrong shape.")
             self.Wh = np.copy(Wh)
             
         if Hh is None:
-            self.Hh = Hh_init
+            self.Hh = nmfh.components_
         else:
             if (Hh.shape != (self.nh_components + self.nsh_components, self.Xh.shape[1])):
                 raise ValueError("Initial Wh has wrong shape.")
@@ -51,23 +46,27 @@ class JointNMF:
         
         # disease programs
         if Wd is None:
-            self.Wd = Wd_init
+            self.Wd = nmfd.fit_transform(Xd)
         else:
             if (Wd.shape != (self.Xd.shape[0], self.nd_components + self.nsh_components)):
                 raise ValueError("Initial Wd has wrong shape.")
             self.Wd = np.copy(Wd)
         
         if Hd is None:
-            self.Hd = Hd_init
+            self.Hd = nmfd.components_
         else:
             if (Hd.shape != (self.nd_components + self.nsh_components, self.Xd.shape[1])):
                 raise ValueError("Initial Wd has wrong shape.")
             self.Hd = np.copy(Hd)
-            
-        healthy_diff = 0.5*np.linalg.norm(self.Xh - np.dot(Wh_init, Hh_init), ord='fro')**2
-        disease_diff = 0.5*np.linalg.norm(self.Xd - np.dot(Wd_init, Hd_init), ord='fro')**2
-        den = np.linalg.norm(Wh_init, ord='fro')**2 + np.linalg.norm(Wd_init, ord='fro')**2
-        self.mu = (healthy_diff + disease_diff)/den
+
+        # option for user input mu or estimated mu 
+        if mu:
+            self.mu = mu
+        else:
+            healthy_diff = 0.5*np.linalg.norm(self.Xh - np.dot(self.Wh, self.Hh), ord='fro')**2
+            disease_diff = 0.5*np.linalg.norm(self.Xd - np.dot(self.Wd, self.Hd), ord='fro')**2
+            denominator = np.linalg.norm(self.Wh, ord='fro')**2 + np.linalg.norm(self.Wd, ord='fro')**2
+            self.mu = (healthy_diff + disease_diff)/denominator
     
     @property
     def cost(self):

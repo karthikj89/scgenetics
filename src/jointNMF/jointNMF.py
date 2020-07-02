@@ -18,6 +18,8 @@ class JointNMF:
                  nh_components=10, nsh_components=10, nd_components=10, gamma=1, mu=None):
         self.Xh = scipy.sparse.csr_matrix(Xh).copy()
         self.Xd = scipy.sparse.csr_matrix(Xd).copy()
+        self.Xh = self.Xh/np.max(self.Xh)
+        self.Xd = self.Xd/np.max(self.Xd)
 
         # initializations
         self.nh_components = nh_components
@@ -36,7 +38,7 @@ class JointNMF:
         
         # healthy programs
         if Wh is None:
-            self.Wh = scipy.sparse.csr_matrix(nmfh.fit_transform(Xh))
+            self.Wh = scipy.sparse.csr_matrix(nmfh.fit_transform(self.Xh))
         else:
             if (Wh.shape != (self.Xh.shape[0], self.nh_components + self.nsh_components)):
                 raise ValueError("Initial Wh has wrong shape.")
@@ -51,7 +53,7 @@ class JointNMF:
         
         # disease programs
         if Wd is None:
-            self.Wd = scipy.sparse.csr_matrix(nmfd.fit_transform(Xd))
+            self.Wd = scipy.sparse.csr_matrix(nmfd.fit_transform(self.Xd))
         else:
             if (Wd.shape != (self.Xd.shape[0], self.nd_components + self.nsh_components)):
                 raise ValueError("Initial Wd has wrong shape.")
@@ -82,7 +84,7 @@ class JointNMF:
         
         diff1 = 0.5*sparse.linalg.norm(self.Xh - safe_sparse_dot(self.Wh, self.Hh), ord='fro')**2
         diff2 = 0.5*sparse.linalg.norm(self.Xd - safe_sparse_dot(self.Wd, self.Hd), ord='fro')**2
-        diff3 = (self.mu/2)*sparse.linalg.norm(self.Wh, ord='fro')**2 + (self.mu/2)*sparse.linalg.norm(self.Wd, ord='fro')
+        diff3 = (self.mu/2)*(sparse.linalg.norm(self.Wh, ord='fro')**2) + (self.mu/2)*(sparse.linalg.norm(self.Wd, ord='fro')**2)
         diff4 = (self.gamma/2)*sparse.linalg.norm(self.Wshh-self.Wshd, ord='fro')**2
         chi2 = diff1 + diff2 + diff3 + diff4
         return chi2

@@ -15,7 +15,7 @@ _smallnumber2 = 1E-04
 
 class JointNMF:
     def __init__(self, Xh, Xd, Wh=None, Hh=None, Wshh=None, Hshh=None, Wshd=None, Hshd=None, Wd=None, Hd=None, 
-                 nh_components=10, nsh_components=10, nd_components=10, gamma=1, mu=None):
+                 nh_components=10, nsh_components=10, nd_components=10, gamma=1, mu=None, numstarts=5):
         self.Xh = scipy.sparse.csr_matrix(Xh).copy()
         self.Xd = scipy.sparse.csr_matrix(Xd).copy()
         self.Xh = self.Xh/np.max(self.Xh)
@@ -33,12 +33,29 @@ class JointNMF:
         
         
         # initialize the matrix using result from standard NMF
-        nmfh = NMF(n_components = nsh_components + nh_components)
-        nmfd = NMF(n_components = nsh_components + nd_components)
+        min_reconstruction_err = _largenumber
+        bestnmfh = None
+        for i in range(numstarts):
+            nmfh = NMF(n_components = nsh_components + nh_components)
+            nmfh.fit_transform(self.Xh)
+            if min_reconstruction_err > nmfh.reconstruction_err_:
+                min_reconstruction_err = nmfh.reconstruction_err_
+                bestnmfh = nmfh
+        self.nmfh = bestnmfh
+        
+        min_reconstruction_err = _largenumber
+        bestnmfd = None
+        for i in range(numstarts):
+            nmfd = NMF(n_components = nsh_components + nd_components)
+            nmfd.fit_transform(self.Xd)
+            if min_reconstruction_err > nmfd.reconstruction_err_:
+                min_reconstruction_err = nmfd.reconstruction_err_
+                bestnmfd = nmfd
+        self.nmfd = bestnmfd
         
         # healthy programs
         if Wh is None:
-            self.Wh = scipy.sparse.csr_matrix(nmfh.fit_transform(self.Xh))
+            self.Wh = scipy.sparse.csr_matrix(nmfh.transform(self.Xh))
         else:
             if (Wh.shape != (self.Xh.shape[0], self.nh_components + self.nsh_components)):
                 raise ValueError("Initial Wh has wrong shape.")
@@ -53,7 +70,7 @@ class JointNMF:
         
         # disease programs
         if Wd is None:
-            self.Wd = scipy.sparse.csr_matrix(nmfd.fit_transform(self.Xd))
+            self.Wd = scipy.sparse.csr_matrix(nmfd.transform(self.Xd))
         else:
             if (Wd.shape != (self.Xd.shape[0], self.nd_components + self.nsh_components)):
                 raise ValueError("Initial Wd has wrong shape.")

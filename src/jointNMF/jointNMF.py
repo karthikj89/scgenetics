@@ -6,10 +6,12 @@ from time import time
 from sklearn.utils import check_random_state
 from sklearn.decomposition import NMF
 from sklearn.utils.extmath import safe_sparse_dot
+from matplotlib import pyplot as plt
+
 
 # constants
 _largenumber = 1E100
-_smallnumber = 1E-06
+_smallnumber = 1E-10
 _smallnumber2 = 1E-04
 
 
@@ -43,6 +45,8 @@ class JointNMF:
                 bestnmfh = nmfh
         self.nmfh = bestnmfh
         
+        print("Initialized healthy with reconstruction error: ", min_reconstruction_err)
+        
         min_reconstruction_err = _largenumber
         bestnmfd = None
         for i in range(numstarts):
@@ -53,16 +57,18 @@ class JointNMF:
                 bestnmfd = nmfd
         self.nmfd = bestnmfd
         
+        print("Initialized disease with reconstruction error: ", min_reconstruction_err)
+        
         # healthy programs
         if Wh is None:
-            self.Wh = scipy.sparse.csr_matrix(nmfh.transform(self.Xh))
+            self.Wh = scipy.sparse.csr_matrix(self.nmfh.transform(self.Xh))
         else:
             if (Wh.shape != (self.Xh.shape[0], self.nh_components + self.nsh_components)):
                 raise ValueError("Initial Wh has wrong shape.")
             self.Wh = np.copy(Wh)
             
         if Hh is None:
-            self.Hh = scipy.sparse.csr_matrix(nmfh.components_)
+            self.Hh = scipy.sparse.csr_matrix(self.nmfh.components_)
         else:
             if (Hh.shape != (self.nh_components + self.nsh_components, self.Xh.shape[1])):
                 raise ValueError("Initial Wh has wrong shape.")
@@ -70,18 +76,48 @@ class JointNMF:
         
         # disease programs
         if Wd is None:
-            self.Wd = scipy.sparse.csr_matrix(nmfd.transform(self.Xd))
+            self.Wd = scipy.sparse.csr_matrix(self.nmfd.transform(self.Xd))
         else:
             if (Wd.shape != (self.Xd.shape[0], self.nd_components + self.nsh_components)):
                 raise ValueError("Initial Wd has wrong shape.")
             self.Wd = np.copy(Wd)
         
         if Hd is None:
-            self.Hd = scipy.sparse.csr_matrix(nmfd.components_)
+            self.Hd = scipy.sparse.csr_matrix(self.nmfd.components_)
         else:
             if (Hd.shape != (self.nd_components + self.nsh_components, self.Xd.shape[1])):
                 raise ValueError("Initial Wd has wrong shape.")
             self.Hd = np.copy(Hd)
+
+        reorder_healthy_idxs, reorder_disease_idxs = self.align_matrices()
+        self.Wh_orig = self.Wh[:, reorder_healthy_idxs].copy()
+        self.Wh = self.Wh[:, reorder_healthy_idxs]
+        
+        self.Hh_orig = self.Hh[reorder_healthy_idxs, :].copy()
+        self.Hh = self.Hh[reorder_healthy_idxs, :]
+        
+        self.Wd_orig = self.Wd[:, reorder_disease_idxs].copy()
+        self.Wd = self.Wd[:, reorder_disease_idxs]
+        
+        self.Hd_orig = self.Hd[reorder_disease_idxs, :].copy()
+        self.Hd = self.Hd[reorder_disease_idxs, :]
+        
+        healthy_reconstruction = sparse.linalg.norm(self.Xh - self.Wh.dot(self.Hh), ord='fro')
+        disease_reconstruction = sparse.linalg.norm(self.Xd - self.Wd.dot(self.Hd), ord='fro')
+        print ("the reconstruction value for healthy and disease: %.5f, %.5f"%(healthy_reconstruction, disease_reconstruction))
+        
+        correlations = []
+        for i in range(self.Wh.shape[1]):
+            correlation = []
+            for j in range(self.Wd.shape[1]):
+                corr = np.corrcoef(self.Wh[:,i].T.todense(), self.Wd[:,j].T.todense())
+                correlation.append(corr[1][0])
+            correlations.append(correlation)
+        correlations = np.array(correlations)
+        plt.imshow(correlations)
+        plt.xlabel("Disease Programs")
+        plt.ylabel("Healthy Programs")
+        plt.show()
 
         # option for user input mu or estimated mu 
         if mu:
@@ -91,6 +127,35 @@ class JointNMF:
             disease_diff = 0.5*sparse.linalg.norm(self.Xd - safe_sparse_dot(self.Wd, self.Hd), ord='fro')**2
             denominator = sparse.linalg.norm(self.Wh, ord='fro')**2 + sparse.linalg.norm(self.Wd, ord='fro')**2
             self.mu = (healthy_diff + disease_diff)/denominator
+    
+    def align_matrices(self):
+        correlations = []
+        for i in range(self.Wh.shape[1]):
+            correlation = []
+            for j in range(self.Wd.shape[1]):
+                corr = np.corrcoef(self.Wh[:,i].T.todense(), self.Wd[:,j].T.todense())
+                correlation.append(corr[1][0])
+            correlations.append(correlation)
+        correlations = np.array(correlations)
+        correlations.shape
+
+        reorder_healthy_idxs = []
+        reorder_disease_idxs = []
+        ct = 0
+
+        while ct < min(correlations.shape[0], correlations.shape[1]):
+            argmax = np.argmax([correlations[i, j] for i, j in enumerate(correlations.argmax(axis=1))])
+            i = range(correlations.shape[0])[argmax]
+            j = correlations.argmax(axis=1)[argmax]
+            reorder_healthy_idxs.append(i)
+            reorder_disease_idxs.append(j)
+            correlations[i,:] = -2
+            correlations[:,j] = -2
+            ct = ct + 1
+
+        reorder_healthy_idxs = reorder_healthy_idxs + list(set(range(correlations.shape[0])).difference(set(reorder_healthy_idxs)))
+        reorder_disease_idxs = reorder_disease_idxs + list(set(range(correlations.shape[1])).difference(set(reorder_disease_idxs)))
+        return reorder_healthy_idxs, reorder_disease_idxs
     
     @property
     def cost(self):
@@ -115,7 +180,7 @@ class JointNMF:
         chi2 = self.cost
         oldchi2 = _largenumber
         maxiters = maxiters if maxiters else self.maxiters
-        while (niter < maxiters) and np.abs((oldchi2-chi2)/chi2) > self.tol: #((oldchi2-chi2)/chi2 > self.tol):
+        while (niter < maxiters) and np.abs((oldchi2-chi2)/oldchi2) > self.tol: #((oldchi2-chi2)/chi2 > self.tol):
             # update Wh
             scale2=np.append((self.gamma+self.mu)*np.ones(self.nsh_components), (self.mu)*np.ones(self.nh_components))
             self.Wshd = self.Wd[:,:self.nsh_components]
@@ -154,9 +219,21 @@ class JointNMF:
             if (not np.isfinite(chi2)):
                raise ValueError("NMF construction failed, likely due to missing data")
 
-            if (np.mod(niter, 20)==0):
+            if (np.mod(niter, 10)==0):
                 print("Current Chi2={0:.4f}, Previous Chi2={1:.4f}, \
                       Change={2:.4f}% @ niters={3}".format(chi2,oldchi2,((oldchi2-chi2)/oldchi2)*100.,niter), flush=True)
+                """correlations = []
+                for i in range(self.Wh.shape[1]):
+                    correlation = []
+                    for j in range(self.Wd.shape[1]):
+                        corr = np.corrcoef(self.Wh[:,i].T.todense(), self.Wd[:,j].T.todense())
+                        correlation.append(corr[1][0])
+                    correlations.append(correlation)
+                correlations = np.array(correlations)
+                plt.imshow(correlations)
+                plt.xlabel("Disease Programs")
+                plt.ylabel("Healthy Programs")
+                plt.show()"""
 
             niter += 1
             if (niter == self.maxiters):

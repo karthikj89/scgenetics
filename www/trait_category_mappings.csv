@@ -1,0 +1,134 @@
+,Category,Subcategory,order,traits
+,Disease,Autoimmune/Inflammatory,1,PASS_IBD.sumstats
+,Disease,Autoimmune/Inflammatory,2,PASS_IBD_deLange2017.sumstats
+,Disease,Autoimmune/Inflammatory,3,PASS_Crohns_Disease.sumstats
+,Disease,Autoimmune/Inflammatory,4,PASS_Ulcerative_Colitis.sumstats
+,Disease,Autoimmune/Inflammatory,5,PASS_Celiac.sumstats
+,Disease,Autoimmune/Inflammatory,6,UKB_460K.disease_ALLERGY_ECZEMA_DIAGNOSED.sumstats
+,biomarkers,Autoimmune/Inflammatory,7,Age_hay_fever_rhinitis_or_eczema_diagnosed.sumstats
+,Disease,Autoimmune/Inflammatory,8,UKB_460K.disease_HYPOTHYROIDISM_SELF_REP.sumstats
+,Disease,Autoimmune/Inflammatory,9,PASS_Rheumatoid_Arthritis.sumstats
+,Disease,Autoimmune/Inflammatory,10,PASS_Primary_biliary_cirrhosis.sumstats
+,Disease,Autoimmune/Inflammatory,11,PASS_Type_1_Diabetes.sumstats
+,Disease,Autoimmune/Inflammatory,12,PASS_Lupus.sumstats
+,Disease,Autoimmune/Inflammatory,13,UKB_460K.disease_AID_SURE.sumstats
+,Disease,Autoimmune/Inflammatory,14,PASS_Alzheimers_Jansen2019.sumstats
+,Disease,Autoimmune/Inflammatory,15,PASS_Multiple_sclerosis.sumstats
+,Disease,Autoimmune/Inflammatory,16,MS_Karthik_Addl.sumstats
+,Trait,Blood Biomarker - WBC,17,UKB_460K.blood_WHITE_COUNT.sumstats
+,biomarkers,Blood Biomarker - WBC,18,White_blood_cell_leukocyte_count.sumstats
+,biomarkers,Blood Biomarker - WBC,19,Lymphocyte_percentage.sumstats
+,Trait,Blood Biomarker - Myeloid,20,UKB_460K.blood_EOSINOPHIL_COUNT.sumstats
+,biomarkers,Blood Biomarker - Myeloid,21,Eosinophill_percentage.sumstats
+,biomarkers,Blood Biomarker - Myeloid,22,Basophill_percentage.sumstats
+,biomarkers,Blood Biomarker - Myeloid,23,Neutrophill_percentage.sumstats
+,biomarkers,Blood Biomarker - Myeloid,24,Monocyte_percentage.sumstats
+,biomarkers,Blood Biomarker - RBC,25,Mean_corpuscular_haemoglobin_concentration.sumstats
+,biomarkers,Blood Biomarker - RBC,26,Mean_corpuscular_haemoglobin.sumstats
+,biomarkers,Blood Biomarker - RBC,27,Haematocrit_percentage.sumstats
+,biomarkers,Blood Biomarker - RBC,28,Haemoglobin_concentration.sumstats
+,biomarkers,Blood Biomarker - RBC,29,High_light_scatter_reticulocyte_percentage.sumstats
+,biomarkers,Blood Biomarker - RBC,30,Immature_reticulocyte_fraction.sumstats
+,biomarkers,Blood Biomarker - RBC,31,Mean_reticulocyte_volume.sumstats
+,biomarkers,Blood Biomarker - RBC,32,Reticulocyte_percentage.sumstats
+,Trait,Blood Biomarker - RBC,33,UKB_460K.blood_RED_COUNT.sumstats
+,Trait,Blood Biomarker - RBC,34,UKB_460K.blood_RBC_DISTRIB_WIDTH.sumstats
+,biomarkers,Blood Biomarker - RBC,35,Mean_corpuscular_volume.sumstats
+,biomarkers,Blood Biomarker - RBC,36,Mean_sphered_cell_volume.sumstats
+,biomarkers,Blood Biomarker - RBC,37,Red_blood_cell_erythrocyte_count.sumstats
+,biomarkers,Blood Biomarker - RBC,38,Red_blood_cell_erythrocyte_distribution_width.sumstats
+,Trait,Blood Biomarker - Platelet,39,UKB_460K.blood_PLATELET_COUNT.sumstats
+,biomarkers,Blood Biomarker - Platelet,40,Mean_platelet_thrombocyte_volume.sumstats
+,biomarkers,Blood Biomarker - Platelet,41,Platelet_count.sumstats
+,biomarkers,Blood Biomarker - Platelet,42,Platelet_crit.sumstats
+,Trait,Body Traits,43,PASS_Height1.sumstats
+,Trait,Body Traits,44,UKB_460K.bmd_HEEL_TSCOREz.sumstats
+,Trait,Body Traits,45,UKB_460K.body_HEIGHTz.sumstats
+,Trait,Body Traits,46,UKB_460K.pigment_SUNBURN.sumstats
+,biomarkers,Body Traits,47,Birth_weight.sumstats
+,Disease,Cancer ,48,PASS_BreastCancer.sumstats
+,Disease,Cancer ,49,PASS_ProstateCancer.sumstats
+,Disease,Cancer ,50,UKB_460K.cancer_BREAST.sumstats
+,Disease,Cancer ,51,UKB_460K.cancer_PROSTATE.sumstats
+,Disease,Cardiovascular health,52,PASS_Coronary_Artery_Disease.sumstats
+,Trait,Cardiovascular health,53,PASS_HDL.sumstats
+,Disease,Cardiovascular health,54,PASS_LDL.sumstats
+,Disease,Cardiovascular health,55,UKB_460K.bp_DIASTOLICadjMEDz.sumstats
+,biomarkers,Cardiovascular health,56,Age_high_blood_pressure_diagnosed.sumstats
+,biomarkers,Cardiovascular health,57,Diastolic_blood_pressure_automated_reading.sumstats
+,biomarkers,Cardiovascular health,58,ECG_heart_rate.sumstats
+,biomarkers,Cardiovascular health,59,Pulse_rate_automated_reading.sumstats
+,biomarkers,Cardiovascular health,60,Pulse_rate.sumstats
+,biomarkers,Cardiovascular health,61,Systolic_blood_pressure_automated_reading.sumstats
+,biomarkers,Cardiovascular health,62,UKB_460K.bp_DIASTOLICadjMEDz.sumstats
+,biomarkers,Cardiovascular health,63,UKB_460K.bp_SYSTOLICadjMEDz.sumstats
+,Disease,Cardiovascular health,64,PASS_AtrialFibrillation_Nielsen2018.sumstats
+,Disease,Cardiovascular health,65,PASS_IschemicStroke_Malik2018.sumstats
+,Disease,Down syndrome,66,PASS_DS.sumstats
+,Trait,Hormone-related,67,UKB_460K.body_BALDING1.sumstats
+,Trait,Hormone-related,68,UKB_460K.repro_MENARCHE_AGE.sumstats
+,Trait,Hormone-related,69,UKB_460K.repro_MENOPAUSE_AGE.sumstats
+,biomarkers,Hormone-related,70,Age_at_menopause_last_menstrual_period.sumstats
+,biomarkers,Hormone-related,71,Age_first_had_sexual_intercourse.sumstats
+,Trait,Hormone-related,72,UKB_460K.biochemistry_IGF1.sumstats
+,Trait,Hormone-related,73,UKB_460K.biochemistry_Testosterone_Male.sumstats
+,Trait,Lifestyle risk,74,PASS_DrinksPerWeek_Liu2019.sumstats
+,Disease,Lifestyle risk,75,PASS_MedicationUse_Wu2019.sumstats
+,Trait,Lung health,76,UKB_460K.lung_FEV1FVCzSMOKE.sumstats
+,Trait,Lung health,77,UKB_460K.lung_FVCzSMOKE.sumstats
+,biomarkers,Lung health,78,Peak_expiratory_flow_PEF.sumstats
+,biomarkers,Lung health,79,Forced_expiratory_volume_in_1second_FEV1.sumstats
+,biomarkers,Lung health,80,Forced_vital_capacity_FVC.sumstats
+,Disease,Lung health,81,UKB_460K.disease_ASTHMA_DIAGNOSED.sumstats
+,Disease,Lung health,82,UKB_460K.disease_RESPIRATORY_ENT.sumstats
+,Disease,Lung health,83,PASS_AdultOnsetAsthma_Ferreira2019.sumstats
+,Disease,Lung health,84,PASS_ChildOnsetAsthma_Ferreira2019.sumstats
+,Trait,Metabolic,85,UKB_460K.body_WHRadjBMIz.sumstats
+,Trait,Metabolic,86,UKB_460K.body_WHRadjBMIz.sumstats
+,Trait,Metabolic,87,PASS_BMI1.sumstats
+,Disease,Metabolic,88,PASS_Type_2_Diabetes.sumstats
+,Trait,Metabolic,89,UKB_460K.body_BMIz.sumstats
+,biomarkers,Metabolic,90,Basal_metabolic_rate.sumstats
+,biomarkers,Metabolic,91,Body_mass_index_BMI.sumstats
+,Disease,Metabolic,92,PASS_Type_2_Diabetes.sumstats
+,Trait,Metabolic,93,UKB_460K.biochemistry_Cholesterol.sumstats
+,Trait,Neurological/Psychological,94,UKB_460K.repro_NumberChildrenEverBorn_Pooled.sumstats
+,Trait,Neurological/Psychological,95,PASS_NumberChildrenEverBorn.sumstats
+,Trait,Neurological/Psychological,96,UKB_460K.body_BMIz.sumstats
+,biomarkers,Neurological/Psychological,97,Body_mass_index_BMI.sumstats
+,Disease,Neurological/Psychological,98,PASS_MDD_Wray2018.sumstats
+,Trait,Neurological/Psychological,99,PASS_SleepDuration_Dashti2019.sumstats
+,Trait,Neurological/Psychological,100,UKB_460K.other_MORNINGPERSON.sumstats
+,Trait,Neurological/Psychological,101,UKB_460K.mental_NEUROTICISM.sumstats
+,Trait,Neurological/Psychological,102,Neuroticism_score.sumstats
+,Disease,Neurological/Psychological,103,PASS_SCZvsBD_Ruderfer2018.sumstats
+,Disease,Neurological/Psychological,104,PASS_ReactionTime_Davies2018.sumstats
+,Disease,Neurological/Psychological,105,PASS_Schizophrenia.sumstats
+,Disease,Neurological/Psychological,106,PASS_Insomnia_Jansen2019.sumstats
+,Trait,Neurological/Psychological,107,PASS_Intelligence_SavageJansen2018.sumstats
+,Disease,Neurological/Psychological,108,PASS_BDSCZ_Ruderfer2018.sumstats
+,Trait,Neurological/Psychological,109,Fluid_intelligence_score.sumstats
+,Trait,Neurological/Psychological,110,PASS_AgeFirstBirth.sumstats
+,Trait,Neurological/Psychological,111,PASS_Years_of_Education1.sumstats
+,Trait,Neurological/Psychological,112,PASS_Years_of_Education2.sumstats
+,biomarkers,Neurological/Psychological,113,Year_ended_full_time_education.sumstats
+,Trait,Neurological/Psychological,114,UKB_460K.cov_EDU_YEARS.sumstats
+,Trait,Neurological/Psychological,115,PASS_GeneralRiskTolerance_KarlssonLinner2019.sumstats
+,Trait,Neurological/Psychological,116,PASS_CigarettesPerDay_Liu2019.sumstats
+,Trait,Neurological/Psychological,117,PASS_Ever_Smoked.sumstats
+,Trait,Neurological/Psychological,118,UKB_460K.cov_SMOKING_STATUS.sumstats
+,Disease,Neurological/Psychological,119,PASS_Anorexia.sumstats
+,Disease,Neurological/Psychological,120,iPSYCH-PGC_ASD_Nov2017_KJ_KKD.sumstats
+,Disease,Neurological/Psychological,121,PASS_ADHD_Demontis2018.sumstats
+,Disease,Neurological/Psychological,122,PASS_Autism.sumstats
+,Disease,Neurological/Psychological,123,PASS_Bipolar_Disorder.sumstats
+,Trait,Urine Biomarker - Kidney function,124,UKB_460K.biochemistry_TotalProtein.sumstats
+,Trait,Urine Biomarker - Kidney function,125,UKB_460K.biochemistry_Creatinine.sumstats
+,Trait,Urine Biomarker - Kidney function,126,UKB_460K.biochemistry_Phosphate.sumstats
+,Trait,Urine Biomarker - Kidney function,127,UKB_460K.biochemistry_VitaminD.sumstats
+,biomarkers,Urine Biomarker - Kidney function,128,Creatinine_enzymatic_in_urine.sumstats
+,biomarkers,Urine Biomarker - Kidney function,129,Potassium_in_urine.sumstats
+,biomarkers,Urine Biomarker - Kidney function,130,Sodium_in_urine.sumstats
+,Trait,Urine Biomarker - Liver function,131,UKB_460K.biochemistry_TotalBilirubin.sumstats
+,Trait,Urine Biomarker - Liver function,132,UKB_460K.biochemistry_AlkalinePhosphatase.sumstats
+,Trait,Urine Biomarker - Liver function,133,UKB_460K.biochemistry_AspartateAminotransferase.sumstats

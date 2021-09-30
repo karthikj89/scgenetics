@@ -1,10 +1,9 @@
 #!/bin/bash
 
 src=$1
-data=$2
-out=$3
-tissue=$4
-sample=$5
-celltype=$6
+programtype=$2
+data=$3
+out=$4
+metadata=$5
 
-python $src/generateGenePrograms.py $data $out $tissue $sample $celltype
+python $src/generateGenePrograms.py $programtype $data $out $metadata

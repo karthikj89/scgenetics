@@ -3,3 +3,4 @@ pandas
 plotly
 streamlit
 streamlit_plotly_events
+scikit-learn

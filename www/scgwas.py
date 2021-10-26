@@ -246,8 +246,11 @@ def generate_heatmap(scgwas_matrix, tissue_cat_selected, trait_cat_selected, tis
 
 	return fig
 
-
-scgwas_matrix = pickle.load(open("scgwas_matrix.pkl","rb"))
+try:
+	scgwas_matrix = pickle.load(open("scgwas_matrix.pkl","rb"))
+except:
+	urlretrieve(matrix_url, dst)
+	scgwas_matrix = pickle.load(open("scgwas_matrix.pkl","rb"))
 trait_categories = list(np.unique(scgwas_matrix["trait_category"].values))
 tissue_categories = list(np.unique(scgwas_matrix["tissue_category"].values))
 tissues = list(np.unique(scgwas_matrix["tissue"].values))

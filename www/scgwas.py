@@ -6,6 +6,11 @@ import streamlit as st
 from streamlit_plotly_events import plotly_events
 import pickle
 from sklearn.preprocessing import MinMaxScaler
+from urllib.request import urlretrieve
+
+matrix_url = 'https://github.com/karthikj89/scgenetics/blob/master/www/scgwas_matrix.pkl?raw=true'
+dst = 'scgwas_matrix.pkl'
+urlretrieve(matrix_url, dst)
 
 st.set_page_config(layout="centered")
 st.title("Single Cell GWAS Explorer")

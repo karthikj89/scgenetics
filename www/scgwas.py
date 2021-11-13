@@ -9,8 +9,11 @@ from sklearn.preprocessing import MinMaxScaler
 from urllib.request import urlretrieve
 
 matrix_url = 'https://github.com/karthikj89/scgenetics/blob/master/www/scgwas_matrix.pkl?raw=true'
+traits_url = 'https://raw.githubusercontent.com/karthikj89/scgenetics/master/www/filtered_traits.txt'
 dst = 'scgwas_matrix.pkl'
+dst2 = 'filtered_traits.txt'
 urlretrieve(matrix_url, dst)
+urlretrieve(matrix_url, dst2)
 
 st.set_page_config(layout="centered")
 st.title("Single Cell GWAS Explorer")

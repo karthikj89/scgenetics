@@ -14,6 +14,7 @@ urlretrieve(matrix_url, dst)
 
 st.set_page_config(layout="centered")
 st.title("Single Cell GWAS Explorer")
+st.write("For more details, visit our [preprint](https://www.biorxiv.org/content/10.1101/2021.03.19.436212v1)")
 st.write("Size of circles indicate enrichment score, opacity of circles indicate -log(p-value).")
 
 def get_trait_mapping(categories, trait_names, trait_name):
@@ -203,13 +204,21 @@ def generate_heatmap(scgwas_matrix, tissue_cat_selected, trait_cat_selected, tis
 		for j in range(len(celltypes)):
 			x.append(j)
 			y.append(i)
-			escore = trait_celltype_escores[i, j] * 2
+			escore = trait_celltype_escores[i, j]
 			if escore < 0:
 				escore = 0
-			escores.append(escore)
+			escores.append(min(escore, 20.0))
 			pvals.append(trait_celltype_pvals_transformed[i, j])
 			pvals_orig.append(trait_celltype_pvals[i, j])
 			texts.append("P-Value: " + str(trait_celltype_pvals[i, j]) + "<br>" + "E-Score: " + str(trait_celltype_escores[i, j]))
+
+	for i in range(len(celltypes)):
+		celltypes[i] = celltypes[i].split("_L2")[0]
+		celltypes[i] = celltypes[i].split("_L3")[0]
+
+	for i in range(len(traits)):
+		traits[i] = traits[i].split("_ldsc")[0]
+		traits[i] = traits[i].replace("UKB_460K.", "")
 
 	fig = go.Figure(data=[go.Scatter(
 	    x=x, y=y,
@@ -251,15 +260,56 @@ try:
 except:
 	urlretrieve(matrix_url, dst)
 	scgwas_matrix = pickle.load(open("scgwas_matrix.pkl","rb"))
+
+filtered_traits = np.loadtxt("filtered_traits.txt", dtype="str")
+scgwas_matrix = scgwas_matrix.loc[scgwas_matrix["trait"].isin(filtered_traits)]
+scgwas_matrix = scgwas_matrix.loc[scgwas_matrix["cell_type"] != "Ignore_L2"]
+
+enhancer_abbrv_map = {
+	"LNG": "Lung",
+	"KID": "Kidney",
+	"FAT": "Fat",
+	"GI": "Colon",
+	"ALL": "All",
+	"BLD": "Blood",
+	"SKIN": "Skin",
+	"HRT": "Heart",
+	"LIV": "Liver",
+	"BRN": "Brain",
+	"100kb": "100kb"
+}
+
+for i, row in scgwas_matrix.iterrows():
+	prefix = row["trait_category"].split(" - ")[0]
+	scgwas_matrix.at[i,'trait_category'] = prefix
+	tissue_cat = row["tissue_category"]
+	enh_type = row["enhancer_type"]
+
+	if tissue_cat == "disease":
+		scgwas_matrix.at[i,'tissue_category'] = "Disease Progression"
+	elif tissue_cat == "healthy":
+		scgwas_matrix.at[i,'tissue_category'] = "Healthy"
+	elif tissue_cat == "disease cellular process":
+		scgwas_matrix.at[i,'tissue_category'] = "Disease-Specific Cellular Process"
+	elif tissue_cat == "healthy cellular process":
+		scgwas_matrix.at[i,'tissue_category'] = "Healthy-Specific Cellular Process"
+
+	if "ABC" in enh_type:
+		tokens = enh_type.split("_")
+		enh_type = "ABC+Roadmap+"+tokens[2]+"-"+enhancer_abbrv_map[tokens[-1]]
+		scgwas_matrix.at[i,'enhancer_type'] = enh_type
+
 trait_categories = list(np.unique(scgwas_matrix["trait_category"].values))
 tissue_categories = list(np.unique(scgwas_matrix["tissue_category"].values))
 tissues = list(np.unique(scgwas_matrix["tissue"].values))
 enhancer_types = list(np.unique(scgwas_matrix["enhancer_type"].values))
 
-tissue_cat_selected = st.sidebar.selectbox("Select Tissue Category: ", tissue_categories, index=tissue_categories.index("healthy"))
-trait_cat_selected = st.sidebar.selectbox("Select Trait Categories: ", trait_categories, index=trait_categories.index("Blood Biomarker - RBC"))
-tissue_selected = st.sidebar.selectbox("Select Tissues: ", tissues, index=tissues.index("ICA_bonemarrow"))
-enhancer_type_selected = st.sidebar.selectbox("Select Enhancer Type: ", enhancer_types, index=enhancer_types.index("ABC_Road_GI_BLD"))
+tissue_cat_selected = st.sidebar.selectbox("Select Tissue Category: ", tissue_categories, index=tissue_categories.index("Healthy"))
+tissues_subset = list(np.unique(scgwas_matrix[scgwas_matrix["tissue_category"] == tissue_cat_selected]["tissue"].values))
+tissue_selected = st.sidebar.selectbox("Select Tissues: ", tissues_subset, index=tissues_subset.index("ICA_bonemarrow"))
+trait_cat_selected = st.sidebar.selectbox("Select Trait Categories: ", trait_categories, index=trait_categories.index("Blood Biomarker"))
+enhancer_subset = list(set(scgwas_matrix[(scgwas_matrix["tissue_category"] == tissue_cat_selected) & (scgwas_matrix["tissue"] == tissue_selected) & (scgwas_matrix["trait_category"] == trait_cat_selected)]["enhancer_type"]))
+enhancer_type_selected = st.sidebar.selectbox("Select Enhancer Type: ", enhancer_subset, index=enhancer_subset.index("ABC+Roadmap+GI-Blood"))
 
 if tissue_cat_selected and trait_cat_selected and tissue_selected and enhancer_type_selected:
 	fig = generate_heatmap(scgwas_matrix, tissue_cat_selected, trait_cat_selected, tissue_selected, enhancer_type_selected)

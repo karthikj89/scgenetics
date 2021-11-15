@@ -9,11 +9,8 @@ from sklearn.preprocessing import MinMaxScaler
 from urllib.request import urlretrieve
 
 matrix_url = 'https://github.com/karthikj89/scgenetics/blob/master/www/scgwas_matrix.pkl?raw=true'
-traits_url = 'https://raw.githubusercontent.com/karthikj89/scgenetics/master/www/filtered_traits.txt'
 dst = 'scgwas_matrix.pkl'
-dst2 = 'filtered_traits.txt'
 urlretrieve(matrix_url, dst)
-urlretrieve(matrix_url, dst2)
 
 st.set_page_config(layout="centered")
 st.title("Single Cell GWAS Explorer")
@@ -48,6 +45,20 @@ def create_matrix():
 	categories = []
 	trait_categories = []
 	enhancer_types = []
+
+	enhancer_abbrv_map = {
+		"LNG": "Lung",
+		"KID": "Kidney",
+		"FAT": "Fat",
+		"GI": "Colon",
+		"ALL": "All",
+		"BLD": "Blood",
+		"SKIN": "Skin",
+		"HRT": "Heart",
+		"LIV": "Liver",
+		"BRN": "Brain",
+		"100kb": "100kb"
+	}
 
 	for folder in glob.glob(healthy_path + "/*"):
 		tissue_name = folder.split("/")[-1]
@@ -156,15 +167,37 @@ def create_matrix():
 					e_scores.append(e_score)
 
 
+	trait_categories = [x.split(" - ")[0] for x in trait_categories]
+	
+	for i in range(len(categories)):
+		tissue_cat = categories[i]
+		if tissue_cat == "disease":
+			categories[i] = "Disease Progression"
+		elif tissue_cat == "healthy":
+			categories[i] = "Healthy"
+		elif tissue_cat == "disease cellular process":
+			categories[i] = "Disease-Specific Cellular Process"
+		elif tissue_cat == "healthy cellular process":
+			categories[i] = "Healthy-Specific Cellular Process"
+
+	gi_idxs = []
+	for i in range(len(enhancer_types)):
+		if "ABC" in enhancer_types[i]:
+			tokens = enhancer_types[i].split("_")
+			enh_type = "ABC+Roadmap+"+tokens[2]+"-"+enhancer_abbrv_map[tokens[-1]]
+			enhancer_types[i] = enh_type
+		if "+GI-" in enhancer_types[i]:
+			gi_idxs.append(i)
+
 	data = {
-		"tissue_category": categories,
-		"trait_category": trait_categories,
-		"tissue": tissues,
-		"trait": traits,
-		"cell_type": cell_types,
-		"enhancer_type": enhancer_types,
-		"e_score": e_scores,
-		"p_value": p_vals
+		"tissue_category": list(map(categories.__getitem__, gi_idxs)),
+		"trait_category": list(map(trait_categories.__getitem__, gi_idxs)),
+		"tissue": list(map(tissues.__getitem__, gi_idxs)),
+		"trait": list(map(traits.__getitem__, gi_idxs)),
+		"cell_type": list(map(cell_types.__getitem__, gi_idxs)),
+		"enhancer_type": list(map(enhancer_types.__getitem__, gi_idxs)),
+		"e_score": list(map(e_scores.__getitem__, gi_idxs)),
+		"p_value": list(map(p_vals.__getitem__, gi_idxs))
 	}
 
 	dataframe = pd.DataFrame.from_dict(data)
@@ -223,6 +256,8 @@ def generate_heatmap(scgwas_matrix, tissue_cat_selected, trait_cat_selected, tis
 		traits[i] = traits[i].split("_ldsc")[0]
 		traits[i] = traits[i].replace("UKB_460K.", "")
 
+	layout = go.Layout(title = "Traits (y-axis) vs Celltypes (x-axis)", legend={'itemsizing': 'trace'})
+
 	fig = go.Figure(data=[go.Scatter(
 	    x=x, y=y,
 	    mode='markers',
@@ -230,10 +265,10 @@ def generate_heatmap(scgwas_matrix, tissue_cat_selected, trait_cat_selected, tis
 	    marker=dict(
 			color = ["#d62728"] * len(x) * len(y),
 	    	opacity = pvals,
-	    	size = escores
+	    	size = escores,
 	    ),
 	    hoverlabel=dict(bgcolor="white")
-	)])
+	)], layout=layout)
 
 	fig.update_layout(
 	    xaxis = dict(
@@ -256,7 +291,11 @@ def generate_heatmap(scgwas_matrix, tissue_cat_selected, trait_cat_selected, tis
 	    width=750,
 	)
 
+	fig.update_layout(legend={'itemsizing': 'trace'})
+
 	return fig
+
+#create_matrix()
 
 try:
 	scgwas_matrix = pickle.load(open("scgwas_matrix.pkl","rb"))
@@ -311,10 +350,8 @@ filtered_traits = ['Age_hay_fever_rhinitis_or_eczema_diagnosed_ldsc',
        'UKB_460K.biochemistry_TotalBilirubin_ldsc',
        'UKB_460K.biochemistry_TotalProtein_ldsc',
        'UKB_460K.biochemistry_VitaminD_ldsc',
-       'UKB_460K.blood_EOSINOPHIL_COUNT_ldsc',
-       'UKB_460K.blood_PLATELET_COUNT_ldsc',
        'UKB_460K.blood_RBC_DISTRIB_WIDTH_ldsc',
-       'UKB_460K.blood_RED_COUNT_ldsc', 'UKB_460K.blood_WHITE_COUNT_ldsc',
+       'UKB_460K.blood_RED_COUNT_ldsc',
        'UKB_460K.body_BMIz_ldsc', 'UKB_460K.body_HEIGHTz_ldsc',
        'UKB_460K.body_WHRadjBMIz_ldsc',
        'UKB_460K.bp_DIASTOLICadjMEDz_ldsc',
@@ -331,51 +368,17 @@ filtered_traits = ['Age_hay_fever_rhinitis_or_eczema_diagnosed_ldsc',
 scgwas_matrix = scgwas_matrix.loc[scgwas_matrix["trait"].isin(filtered_traits)]
 scgwas_matrix = scgwas_matrix.loc[scgwas_matrix["cell_type"] != "Ignore_L2"]
 
-enhancer_abbrv_map = {
-	"LNG": "Lung",
-	"KID": "Kidney",
-	"FAT": "Fat",
-	"GI": "Colon",
-	"ALL": "All",
-	"BLD": "Blood",
-	"SKIN": "Skin",
-	"HRT": "Heart",
-	"LIV": "Liver",
-	"BRN": "Brain",
-	"100kb": "100kb"
-}
-
-for i, row in scgwas_matrix.iterrows():
-	prefix = row["trait_category"].split(" - ")[0]
-	scgwas_matrix.at[i,'trait_category'] = prefix
-	tissue_cat = row["tissue_category"]
-	enh_type = row["enhancer_type"]
-
-	if tissue_cat == "disease":
-		scgwas_matrix.at[i,'tissue_category'] = "Disease Progression"
-	elif tissue_cat == "healthy":
-		scgwas_matrix.at[i,'tissue_category'] = "Healthy"
-	elif tissue_cat == "disease cellular process":
-		scgwas_matrix.at[i,'tissue_category'] = "Disease-Specific Cellular Process"
-	elif tissue_cat == "healthy cellular process":
-		scgwas_matrix.at[i,'tissue_category'] = "Healthy-Specific Cellular Process"
-
-	if "ABC" in enh_type:
-		tokens = enh_type.split("_")
-		enh_type = "ABC+Roadmap+"+tokens[2]+"-"+enhancer_abbrv_map[tokens[-1]]
-		scgwas_matrix.at[i,'enhancer_type'] = enh_type
-
 trait_categories = list(np.unique(scgwas_matrix["trait_category"].values))
 tissue_categories = list(np.unique(scgwas_matrix["tissue_category"].values))
 tissues = list(np.unique(scgwas_matrix["tissue"].values))
 enhancer_types = list(np.unique(scgwas_matrix["enhancer_type"].values))
 
-tissue_cat_selected = st.sidebar.selectbox("Select Tissue Category: ", tissue_categories, index=tissue_categories.index("Healthy"))
+tissue_cat_selected = st.sidebar.selectbox("Select Tissue Category: ", tissue_categories, index=0)
 tissues_subset = list(np.unique(scgwas_matrix[scgwas_matrix["tissue_category"] == tissue_cat_selected]["tissue"].values))
-tissue_selected = st.sidebar.selectbox("Select Tissues: ", tissues_subset, index=tissues_subset.index("ICA_bonemarrow"))
-trait_cat_selected = st.sidebar.selectbox("Select Trait Categories: ", trait_categories, index=trait_categories.index("Blood Biomarker"))
+tissue_selected = st.sidebar.selectbox("Select Tissues: ", tissues_subset, index=0)
+trait_cat_selected = st.sidebar.selectbox("Select Trait Categories: ", trait_categories, index=0)
 enhancer_subset = list(set(scgwas_matrix[(scgwas_matrix["tissue_category"] == tissue_cat_selected) & (scgwas_matrix["tissue"] == tissue_selected) & (scgwas_matrix["trait_category"] == trait_cat_selected)]["enhancer_type"]))
-enhancer_type_selected = st.sidebar.selectbox("Select Enhancer Type: ", enhancer_subset, index=enhancer_subset.index("ABC+Roadmap+GI-Blood"))
+enhancer_type_selected = st.sidebar.selectbox("Select Enhancer Type: ", enhancer_subset, index=0)
 
 if tissue_cat_selected and trait_cat_selected and tissue_selected and enhancer_type_selected:
 	fig = generate_heatmap(scgwas_matrix, tissue_cat_selected, trait_cat_selected, tissue_selected, enhancer_type_selected)
@@ -407,3 +410,4 @@ st.markdown(
 """,
         unsafe_allow_html=True,
     )
+

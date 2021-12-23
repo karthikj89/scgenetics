@@ -108,7 +108,7 @@ def write_diseaseprogression_matrix(adata, filedir, filename, celltypelabel):
     logfoldmtxs.to_csv("%s/%s_logfold.csv"%(filedir, filename))
     scoremtxs.to_csv("%s/%s_score.csv"%(filedir, filename))
     
-def compute_celltype_programs(filename, tissue, sampleid, celltypelabel):
+def compute_celltype_programs(filename, tissue, sampleid, celltypelabel, filedir):
     tissueadata = sc.read(filename)
     for ctlabel in [celltypelabel]:
         print(ctlabel)
@@ -128,7 +128,7 @@ def compute_celltype_programs(filename, tissue, sampleid, celltypelabel):
                                  tissue, 
                                  celltypelabel)
 
-def compute_diseaseprogression_programs(filename, tissue, patientkey, celltypelabel, diagnosislabel, healthylabel, diseaselabel):
+def compute_diseaseprogression_programs(filename, tissue, patientkey, celltypelabel, diagnosislabel, healthylabel, diseaselabel, filedir):
     diseaselabel_mapping = {healthylabel:"Healthy", diseaselabel:"Disease"}
     adata = sc.read(filename)
     for ctlabel in [celltypelabel]:
@@ -181,11 +181,12 @@ if __name__=='__main__':
     filedir = sys.argv[3]
       
     if programtype=='celltype':
-        tissue, sampleid, celltypelabel = sys.argv[4]
+        tissue, sampleid, celltypelabel = sys.argv[4].split(',')
         compute_celltype_programs(filename,
                                   tissue,
                                   sampleid,
-                                  celltypelabel
+                                  celltypelabel,
+				  filedir
                                  )
     elif programtype=='diseaseprogression':
         tissue, sampleid, celltypelabel, diagnosislabel, healthylabel, diseaselabel = sys.argv[4].split(',')
@@ -195,5 +196,6 @@ if __name__=='__main__':
                                             celltypelabel, 
                                             diagnosislabel, 
                                             healthylabel, 
-                                            diseaselabel
+                                            diseaselabel,
+					    filedir
                                            )

@@ -16,5 +16,3 @@ bash <srcdir>/generateGenePrograms.sh <srcdir> diseaseprogression <datapath> <ou
 ```
 
 * cellular processes programs
-
-To construct gene programs from single cell data for heritability analysis you can perform

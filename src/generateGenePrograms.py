@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import sys
 from collections import Counter
+import scipy.stats
 
 def write_celltypeprogram_matrix(adata, filedir, filename, celltypelabel):
     # set up the ordering of genes and cells
@@ -48,6 +49,15 @@ def write_celltypeprogram_matrix(adata, filedir, filename, celltypelabel):
     pvalmtxs.to_csv("%s/%s_pval.csv"%(filedir, filename))
     logfoldmtxs.to_csv("%s/%s_logfold.csv"%(filedir, filename))
     scoremtxs.to_csv("%s/%s_score.csv"%(filedir, filename))
+    
+    scoremtxs = scoremtxs.clip(lower=0)
+    scoremtxs = pd.DataFrame(scipy.stats.norm.sf(scoremtxs), index=scoremtxs.index, columns=scoremtxs.columns)
+    scoremtxs=scoremtxs+1e-08
+    scoremtxs = -2*np.log(scoremtxs)
+
+    # min max normalization
+    scoremtxs = (scoremtxs - scoremtxs.min())/(scoremtxs.max()-scoremtxs.min())
+    scoremtxs.to_csv("%s/%s_genescores.csv"%(filedir, filename))
     
 def write_diseaseprogression_matrix(adata, filedir, filename, celltypelabel):
     # set up the ordering of genes and cells
@@ -107,6 +117,15 @@ def write_diseaseprogression_matrix(adata, filedir, filename, celltypelabel):
     pvalmtxs.to_csv("%s/%s_pval.csv"%(filedir, filename))
     logfoldmtxs.to_csv("%s/%s_logfold.csv"%(filedir, filename))
     scoremtxs.to_csv("%s/%s_score.csv"%(filedir, filename))
+    
+    scoremtxs = scoremtxs.clip(lower=0)
+    scoremtxs = pd.DataFrame(scipy.stats.norm.sf(scoremtxs), index=scoremtxs.index, columns=scoremtxs.columns)
+    scoremtxs=scoremtxs+1e-08
+    scoremtxs = -2*np.log(scoremtxs)
+
+    # min max normalization
+    scoremtxs = (scoremtxs - scoremtxs.min())/(scoremtxs.max()-scoremtxs.min())
+    scoremtxs.to_csv("%s/%s_genescores.csv"%(filedir, filename))
     
 def compute_celltype_programs(filename, tissue, sampleid, celltypelabel, filedir):
     tissueadata = sc.read(filename)

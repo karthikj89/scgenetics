@@ -22,6 +22,8 @@ bash <srcdir>/generateGenePrograms.sh <srcdir> diseaseprogression <datapath> <ou
 
 * cellular processes programs
 
-### transforming gene programs to SNP annotations using epigenomic data
+### transforming gene programs to SNP annotations and measuring the heritability enrichment in human disease GWAS
 
-### measuring the heritability enrichment in human disease GWAS
+```
+details can be found at: https://github.com/kkdey/GSSG
+```
